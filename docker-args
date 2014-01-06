@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+STDIN=$(cat)
+APP="$1"
+
+# Each app goes to it's own directory:
+LOG_DIR=/var/log/dokku/$APP
+# Log directory gets mapped to the same path in the app's container:
+CONTAINER_PATH=/var/log/app
+
+# Create the directory if it doesn't exist:
+mkdir -p "$LOG_DIR"
+
+# Spit back the Docker arg to bind it:
+echo "$STDIN -v ${LOG_DIR}:${CONTAINER_PATH}"

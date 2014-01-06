@@ -1,0 +1,44 @@
+#!/bin/bash
+APP="$1"; IMAGE="app/$1"
+
+read -d '' runner <<'EOF'
+#!/bin/bash
+
+set -e
+export HOME=/app
+hash -r
+cd \$HOME
+
+cat << CONF > supervisord.conf
+[supervisord]
+logfile=/var/log/app/supervisor.log
+loglevel=info
+nodaemon=true
+CONF
+
+while read line || [ -n "\$line" ]; do
+  name=\${line%%:*}
+  command=\${line#*: }
+  cat << CONF >> supervisord.conf
+[program:\${name}]
+command=/exec sh -c "\${command}"
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
+CONF
+
+done < "Procfile"
+
+supervisord -c supervisord.conf
+EOF
+
+set -e
+
+echo "-----> Injecting Supervisor ..."
+
+id=$(echo "$runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
+docker attach $id
+test $(docker wait $id) -eq 0
+docker commit $id $IMAGE > /dev/null
