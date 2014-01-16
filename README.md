@@ -62,6 +62,12 @@ Logs for each process will go to separate log file in `/var/log/dokku/$APP/proce
 
 __Note:__ All the processes will run in same Docker container. They do *not* run in separate containers. This means that if you have multiple "web" processes they will each try to listen on the same `PORT` environment variable. For this to work properly you should use the socket option [SO_REUSEPORT](https://lwn.net/Articles/542629/). If that is not available then you will need to stick with a single web process.
 
+Rather than editing the file manually you can use the command:
+
+    dokku scale myapp web=1 worker=6
+
+This will generate a new `SCALE` file, rebuild, and then deploy the app. Currently scaling is part of the app build itself so scaling will run an entire build again.
+
 ## TODO
 
 * Better handle log file rotation
