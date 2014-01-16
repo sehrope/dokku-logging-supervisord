@@ -46,11 +46,26 @@ Then upon starting it you would have log files at:
     /var/log/dokku/myapp/web.00.log
     /var/log/dokku/myapp/worker.00.log
 
+## Scaling
+
+This plugin supports running multiple of the same process type. At start it checks for a file in the apps home diretory named `SCALE`. The file should be a series of lines of the form `name=<num>` where `name` is the process name and `<num>` is the number of processes of that type to start.
+
+Example:
+
+    web=1
+    worker=5
+    clock=1
+
+If the file does not exist then a single process of each type will be created for each process type in Procfile. Additional lines in the file ignored.
+
+Logs for each process will go to separate log file in `/var/log/dokku/$APP/process.<num>.log`
+
+__Note:__ All the processes will run in same Docker container. They do *not* run in separate containers. This means that if you have multiple "web" processes they will each try to listen on the same `PORT` environment variable. For this to work properly you should use enable the socket option [SO_REUSEPORT](https://lwn.net/Articles/542629/). If that is not available you will need to stick with a single web process.
+
 ## TODO
 
 * Better handle log file rotation
 * Add date/time to log output
-* Add support for multiple of the same process type
 
 ## Thanks
 

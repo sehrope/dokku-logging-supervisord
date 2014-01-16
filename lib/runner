@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+export HOME=/app
+hash -r
+cd $HOME
+
+# Generate supervisord.conf:
+bash /build/procfile-to-supervisord /app/Procfile /app/.profile.d/SCALE > supervisord.conf
+
+# Display the generated supervisord.conf:
+echo "Generated supervisord.conf:"
+cat -n supervisord.conf
+
+# Start up the app:
+supervisord -c supervisord.conf

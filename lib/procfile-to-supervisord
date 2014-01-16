@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Generates a supervisord.conf from a Procfile and Scalefile.
+# Outut goes to stdout.
+#
+# Usage: procfile-to-supervisord Procfile [Scalefile]
+#
+# Scalefile should be of the form:
+# web=2
+# worker=3
+# clock=1
+
+PROCFILE="$1"
+SCALEFILE="$2"
+
+if [ ! -f "$PROCFILE" ]; then
+  echo "Procfile does not exist or is not readable: $PROCFILE" 1>&2
+  exit 1
+fi
+
+function gen_supervisor_conf () {
+cat << EOF
+[supervisord]
+logfile=/var/log/app/supervisor.log
+loglevel=info
+nodaemon=true
+EOF
+}
+
+function gen_supervisor_proc_conf () {
+NAME="$1"
+COMMAND="$2"
+NUM_PROCS="$3"
+PROCESS_NAME='%(program_name)s'
+if [ "$NUM_PROCS" -gt 1 ]; then
+  PROCESS_NAME='%(program_name)s.%(process_num)02d'
+fi
+
+cat << EOF
+[program:${NAME}]
+command=/exec sh -c '${COMMAND}'
+process_name:${PROCESS_NAME}
+numprocs=${NUM_PROCS}
+autostart=true
+autorestart=true
+stopsignal=QUIT
+redirect_stderr=true
+stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
+EOF
+}
+
+gen_supervisor_conf
+
+cat "$PROCFILE" | while read line; do
+  if [ ! -n "$line" ]; then
+    continue
+  fi
+
+  NAME=${line%%:*}
+  COMMAND=${line#*: }
+  NUM_PROCS=1
+
+  if [ -f "$SCALEFILE" ]; then
+    SCALE=$(grep "$NAME=" "$SCALEFILE")
+    NUM_PROCS=${SCALE#*=}
+    if [ ! "$NUM_PROCS" -ge 1 ]; then
+      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
+      exit 1
+    fi
+  fi
+
+  # Add a blank line in between processes:
+  echo ""
+  gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+done

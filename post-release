@@ -1,44 +1,35 @@
 #!/bin/bash
-APP="$1"; IMAGE="app/$1"
-
-read -d '' runner <<'EOF'
-#!/bin/bash
-
-set -e
-export HOME=/app
-hash -r
-cd \$HOME
-
-cat << CONF > supervisord.conf
-[supervisord]
-logfile=/var/log/app/supervisor.log
-loglevel=info
-nodaemon=true
-CONF
-
-while read line || [ -n "\$line" ]; do
-  name=\${line%%:*}
-  command=\${line#*: }
-  cat << CONF >> supervisord.conf
-[program:\${name}]
-command=/exec sh -c "\${command}"
-autostart=true
-autorestart=true
-stopsignal=QUIT
-redirect_stderr=true
-stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
-CONF
-
-done < "Procfile"
-
-supervisord -c supervisord.conf
-EOF
+APP="$1"
+IMAGE="app/$1"
+SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
 set -e
 
-echo "-----> Injecting Supervisor ..."
+# Copies a file from the host into the container
+function copy_to_container() {
+  SOURCE_FILE="$1"
+  TARGET_FILE="$2"
+  if [ ! -f "$SOURCE_FILE" ]; then
+    echo "Source file does not exist on host: $SOURCE_FILE"
+    exit 1
+  fi
+  id=$(cat "$SOURCE_FILE" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > '$TARGET_FILE'")
+  docker attach $id
+  test $(docker wait $id) -eq 0
+  docker commit $id $IMAGE > /dev/null
+}
 
-id=$(echo "$runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
+PLUGIN_DIR=$(dirname $0)
+copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
+if [ -f "$SCALE_FILE" ]; then
+  echo "Found SCALE file: $SCALE_FILE"
+  copy_to_container "$SCALE_FILE" /app/.profile.d/SCALE
+else
+  echo "No SCALE file found; will use default of one process per entry in Procfile."
+fi
+
+echo "-----> Injecting Logging Supervisor ..."
+id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
 docker attach $id
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
