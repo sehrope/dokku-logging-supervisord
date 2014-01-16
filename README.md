@@ -60,7 +60,7 @@ If the file does not exist then a single process of each type will be created fo
 
 Logs for each process will go to separate log file in `/var/log/dokku/$APP/process.<num>.log`
 
-__Note:__ All the processes will run in same Docker container. They do *not* run in separate containers. This means that if you have multiple "web" processes they will each try to listen on the same `PORT` environment variable. For this to work properly you should use enable the socket option [SO_REUSEPORT](https://lwn.net/Articles/542629/). If that is not available you will need to stick with a single web process.
+__Note:__ All the processes will run in same Docker container. They do *not* run in separate containers. This means that if you have multiple "web" processes they will each try to listen on the same `PORT` environment variable. For this to work properly you should use the socket option [SO_REUSEPORT](https://lwn.net/Articles/542629/). If that is not available then you will need to stick with a single web process.
 
 ## TODO
 
