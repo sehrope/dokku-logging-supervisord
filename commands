@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
+PLUGIN_DIR=$(dirname $0)
+. "$PLUGIN_DIR/lib/helpers"
+
 case "$1" in
   scale)
     if [[ -z $2 ]]; then
@@ -8,22 +11,37 @@ case "$1" in
       exit 1
     fi
     APP="$2"
+    IMAGE="app/$APP"
     REPO="$DOKKU_ROOT/$APP"
     if [ ! -d "$REPO" ]; then
       echo "No matching app: $APP"
       exit 1
     fi
-    shift
-    shift
+    shift 2
+
+    # TODO: Copy to a temp file first
+    # TODO: Validate that it is of the form name=num
+
     SCALEFILE="$REPO/SCALE"
     for line in "$@"
     do
       echo "$line"
     done > "$SCALEFILE"
+
+    # kill the app when running
+    echo "Checking for existing running application"
+    if [[ -f "$DOKKU_ROOT/$APP/CONTAINER" ]]; then
+      echo "Existing running application found. Will kill it."
+      oldid=$(< "$DOKKU_ROOT/$APP/CONTAINER")
+      docker kill $oldid > /dev/null 2>&1 || true
+      echo "Killed running application."
+    fi
+
     echo "Scaling app $APP:"
     cat -n "$REPO/SCALE"     
-    REF=$(cat $REPO/refs/heads/master)
-    cd $REPO && git archive $REF | dokku receive $APP | sed -u "s/^/"$'\e[1G'"/"
+    copy_to_container "$SCALEFILE" /SCALE
+
+    dokku deploy "$APP"
     ;;
   help)
     cat && cat<<EOF

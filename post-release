@@ -5,25 +5,13 @@ SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
 set -e
 
-# Copies a file from the host into the container
-function copy_to_container() {
-  SOURCE_FILE="$1"
-  TARGET_FILE="$2"
-  if [ ! -f "$SOURCE_FILE" ]; then
-    echo "Source file does not exist on host: $SOURCE_FILE"
-    exit 1
-  fi
-  id=$(cat "$SOURCE_FILE" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > '$TARGET_FILE'")
-  docker attach $id
-  test $(docker wait $id) -eq 0
-  docker commit $id $IMAGE > /dev/null
-}
-
 PLUGIN_DIR=$(dirname $0)
+. "$PLUGIN_DIR/lib/helpers"
+
 copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
-  copy_to_container "$SCALE_FILE" /app/.profile.d/SCALE
+  copy_to_container "$SCALE_FILE" /SCALE
 else
   echo "No SCALE file found; will use default of one process per entry in Procfile."
 fi
