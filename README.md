@@ -66,7 +66,7 @@ Rather than editing the file manually you can use the command:
 
     dokku scale myapp web=1 worker=6
 
-This will generate a new `SCALE` file, rebuild, and then deploy the app. An app rebuild will __not__ happen. It will just kill and restart your application.
+This will generate a new `SCALE` file and then deploy the app. An app rebuild will __not__ happen. It will just kill and restart your application.
 
 Adding the `SCALE` file is done by copying it into the container. This adds another layer to the container's AUFS. As there is a max number of layers you may need to occasionally run a rebuild (try `dokku rebuild myapp`) to rebase the container.
 
