@@ -56,20 +56,27 @@ cat "$PROCFILE" | while read line; do
     continue
   fi
 
-  NAME=${line%%:*}
-  COMMAND=${line#*: }
-  NUM_PROCS=1
+  case "$line" in
+    web|worker|urgentworker)
+      NAME=${line%%:*}
+      COMMAND=${line#*: }
+      NUM_PROCS=1
 
-  if [ -f "$SCALEFILE" ]; then
-    SCALE=$(grep "$NAME=" "$SCALEFILE")
-    NUM_PROCS=${SCALE#*=}
-    if [ ! "$NUM_PROCS" -ge 1 ]; then
-      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-      exit 1
-    fi
-  fi
+      if [ -f "$SCALEFILE" ]; then
+        SCALE=$(grep "$NAME=" "$SCALEFILE")
+        NUM_PROCS=${SCALE#*=}
+        if [ ! "$NUM_PROCS" -ge 1 ]; then
+          echo "Invalid scale line for process $NAME: $SCALE" 1>&2
+          exit 1
+        fi
+      fi
 
-  # Add a blank line in between processes:
-  echo ""
-  gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+      # Add a blank line in between processes:
+      echo ""
+      gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+      ;;
+    *)
+      continue
+      ;;
+  esac
 done
