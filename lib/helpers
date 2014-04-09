@@ -11,7 +11,8 @@ function copy_to_container() {
     exit 1
   fi
   id=$(cat "$SOURCE_FILE" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > '$TARGET_FILE'")
-  docker attach $id
+  # Don't attach here, just rely on docker wait
+  # docker attach $id
   test $(docker wait $id) -eq 0
   docker commit $id $IMAGE > /dev/null
 }
