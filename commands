@@ -11,7 +11,7 @@ case "$1" in
       exit 1
     fi
     APP="$2"
-    IMAGE="app/$APP"
+    IMAGE="dokku/$APP"
     REPO="$DOKKU_ROOT/$APP"
     if [ ! -d "$REPO" ]; then
       echo "No matching app: $APP"
@@ -38,7 +38,7 @@ case "$1" in
     fi
 
     echo "Scaling app $APP:"
-    cat -n "$REPO/SCALE"     
+    cat -n "$REPO/SCALE"
     copy_to_container "$SCALEFILE" /SCALE
 
     dokku deploy "$APP"
