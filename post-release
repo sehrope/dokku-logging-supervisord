@@ -18,6 +18,5 @@ fi
 
 echo "-----> Injecting Logging Supervisor ..."
 id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
-docker attach $id
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
