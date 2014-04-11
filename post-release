@@ -1,6 +1,6 @@
 #!/bin/bash
 APP="$1"
-IMAGE="app/$1"
+IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
 set -e
