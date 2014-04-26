@@ -51,11 +51,10 @@ EOF
 
 gen_supervisor_conf
 
-cat "$PROCFILE" | while read line; do
-  if [ ! -n "$line" ]; then
-    continue
-  fi
-
+DONE=false
+until $DONE; do
+  read line || DONE=true
+  [[ ! -n "$line" ]] && continue
   case "$line" in
     web*|worker*|urgentworker*|clock*)
       NAME=${line%%:*}
@@ -79,4 +78,4 @@ cat "$PROCFILE" | while read line; do
       continue
       ;;
   esac
-done
+done < $PROCFILE
