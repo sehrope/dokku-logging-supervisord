@@ -57,7 +57,7 @@ cat "$PROCFILE" | while read line; do
   fi
 
   case "$line" in
-    web*|worker*|urgentworker*)
+    web*|worker*|urgentworker*|clock*)
       NAME=${line%%:*}
       COMMAND=${line#*: }
       NUM_PROCS=1
