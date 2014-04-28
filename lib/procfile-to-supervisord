@@ -49,33 +49,26 @@ stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
 EOF
 }
 
-gen_supervisor_conf
+# gen_supervisor_conf
 
 DONE=false
 until $DONE; do
   read line || DONE=true
-  [[ ! -n "$line" ]] && continue
-  case "$line" in
-    web*|worker*|urgentworker*|clock*)
-      NAME=${line%%:*}
-      COMMAND=${line#*: }
-      NUM_PROCS=1
+  [[ -z "$line" ]] && continue
+  NAME=${line%%:*}
+  COMMAND=${line#*: }
+  NUM_PROCS=1
 
-      if [ -f "$SCALEFILE" ]; then
-        SCALE=$(grep "$NAME=" "$SCALEFILE")
-        NUM_PROCS=${SCALE#*=}
-        if [ ! "$NUM_PROCS" -ge 1 ]; then
-          echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-          exit 1
-        fi
-      fi
+  if [ -f "$SCALEFILE" ]; then
+    SCALE=$(egrep "^$NAME=" "$SCALEFILE")
+    if [ -n "$SCALE" ]; then
+      NUM_PROCS=${SCALE#*=}
+    fi
+  fi
 
-      # Add a blank line in between processes:
-      echo ""
-      gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
-      ;;
-    *)
-      continue
-      ;;
-  esac
+  if [ "$NUM_PROCS" -ge 1 ]; then
+    # Add a blank line in between processes:
+    echo ""
+    gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+  fi
 done < $PROCFILE
