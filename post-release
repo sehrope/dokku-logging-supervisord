@@ -14,7 +14,7 @@ if [ -f "$SCALE_FILE" ]; then
   copy_to_container "$SCALE_FILE" /app/SCALE
 else
   # Check for SCALE file in IMAGE
-  IMAGE_SCALE_FILE=$(docker run -i -t $IMAGE /exec "ls SCALE")
+  IMAGE_SCALE_FILE=$(docker run -i -t $IMAGE /exec ls SCALE)
   if [ "$IMAGE_SCALE_FILE" = "SCALE" ];then
     echo "Found SCALE file in IMAGE"
   else
