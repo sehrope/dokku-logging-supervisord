@@ -6,7 +6,7 @@ hash -r
 cd $HOME
 
 # Generate supervisord.conf:
-bash /build/procfile-to-supervisord /app/Procfile /SCALE > supervisord.conf
+bash /build/procfile-to-supervisord /app/Procfile /app/SCALE > supervisord.conf
 
 # Create /var/log/app directory
 mkdir -p /var/log/app
