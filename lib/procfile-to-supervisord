@@ -49,7 +49,7 @@ stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
 EOF
 }
 
-# gen_supervisor_conf
+gen_supervisor_conf
 
 DONE=false
 until $DONE; do
