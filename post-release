@@ -8,6 +8,12 @@ set -e
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
 
+# Check for Procfile
+id=$(docker run -d $IMAGE test -f app/Procfile)
+if [ $(docker wait $id) -ne 0 ]; then
+  exit 0
+fi
+
 copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
