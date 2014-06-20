@@ -23,6 +23,11 @@ else
 fi
 
 echo "-----> Injecting Logging Supervisor ..."
-id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
-test $(docker wait $id) -eq 0
-docker commit $id $IMAGE > /dev/null
+isInstalled=$(docker run -i -t $IMAGE /bin/bash -c "/usr/bin/dpkg -l | egrep supervisor > /dev/null 2>&1" ; echo $?)
+if [ "$isInstalled" != "0" ]; then
+    id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
+    test $(docker wait $id) -eq 0
+    docker commit $id $IMAGE > /dev/null
+else
+    echo "-----> supervisor is already installed ..."
+fi
