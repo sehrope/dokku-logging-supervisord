@@ -18,6 +18,14 @@ copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-s
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
   copy_to_container "$SCALE_FILE" /app/SCALE
+else
+  # Check for SCALE file in IMAGE
+  SCALE_IN_IMAGE=$(docker run -i -t $IMAGE /exec ls SCALE > /dev/null 2>&1 ; echo $?)
+  if [ "$SCALE_IN_IMAGE" -eq 0 ];then
+    echo "Found SCALE file in IMAGE"
+  else
+    echo "No SCALE file found; will use default of one process per entry in Procfile."
+  fi
 fi
 
 echo "-----> Injecting Logging Supervisor ..."
