@@ -1,9 +1,9 @@
 #!/bin/bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
 APP="$1"
 IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
-
-set -e
 
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
