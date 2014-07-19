@@ -51,25 +51,24 @@ EOF
 
 gen_supervisor_conf
 
-cat "$PROCFILE" | while read line; do
-  if [ ! -n "$line" ]; then
-    continue
-  fi
-
+DONE=false
+until $DONE; do
+  read line || DONE=true
+  [[ -z "$line" ]] && continue
   NAME=${line%%:*}
   COMMAND=${line#*: }
   NUM_PROCS=1
 
   if [ -f "$SCALEFILE" ]; then
-    SCALE=$(grep "$NAME=" "$SCALEFILE")
-    NUM_PROCS=${SCALE#*=}
-    if [ ! "$NUM_PROCS" -ge 1 ]; then
-      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-      exit 1
+    SCALE=$(egrep "^$NAME=" "$SCALEFILE")
+    if [ -n "$SCALE" ]; then
+      NUM_PROCS=${SCALE#*=}
     fi
   fi
 
-  # Add a blank line in between processes:
-  echo ""
-  gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
-done
+  if [ "$NUM_PROCS" -ge 1 ]; then
+    # Add a blank line in between processes:
+    echo ""
+    gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+  fi
+done < $PROCFILE
