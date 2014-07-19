@@ -1,12 +1,18 @@
 #!/bin/bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
 APP="$1"
 IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
-set -e
-
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
+
+# Check for Procfile
+id=$(docker run -d $IMAGE test -f app/Procfile)
+if [ $(docker wait $id) -ne 0 ]; then
+  exit 0
+fi
 
 copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
@@ -23,6 +29,17 @@ else
 fi
 
 echo "-----> Injecting Logging Supervisor ..."
-id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start && apt-get update && apt-get install -y supervisor && apt-get clean")
+
+if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
+  echo "supervisor is already installed (skipping apt-get update/install)"
+else
+  echo "supervisor is not installed (will install via apt-get)"
+  id=$(docker run -i -a stdin $IMAGE /bin/bash -c "apt-get update && apt-get install -y supervisor && apt-get clean")
+  test $(docker wait $id) -eq 0
+  docker commit $id $IMAGE > /dev/null
+fi
+
+# Replace /start with our custom runner:
+id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start")
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
