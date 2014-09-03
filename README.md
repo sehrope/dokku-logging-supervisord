@@ -16,6 +16,7 @@ sudo chown dokku:dokku /var/log/dokku
 
 # Install the plugin:
 git clone https://github.com/sehrope/dokku-logging-supervisord.git /var/lib/dokku/plugins/logging-supervisord
+sudo dokku plugins-install
 ```
 
 All future deployments will use this plugin to start all processes and all log output will be in `/var/log/dokku/$APP/`.

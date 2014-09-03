@@ -1,0 +1,14 @@
+#!/bin/bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+IMAGE="progrium/buildstep"
+
+if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
+  echo "supervisor is already installed (skipping apt-get update/install)"
+else
+  echo "supervisor is not installed (will install via apt-get)"
+  id=$(docker run -i -a stdin $IMAGE /bin/bash -c "apt-get update && apt-get install -y supervisor && apt-get clean")
+  docker attach $id
+  test $(docker wait $id) -eq 0
+  docker commit $id $IMAGE > /dev/null
+fi
