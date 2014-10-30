@@ -15,7 +15,11 @@ mkdir -p /var/log/app
 user_name=$(egrep "^u[1-9]+" /etc/passwd 2> /dev/null | awk -F':' '{ print $1 }')
 if [ -n "$user_name" ];then
     chown -R $user_name /var/log/app
-    [[ -d "/mnt/whoosh_index" ]] && chown -R $user_name /mnt/whoosh_index
+    chmod -R g+rw /var/log/app
+    if [ -d "/mnt/whoosh_index" ];then
+        chown -R $user_name /mnt/whoosh_index
+        chmod -R g+rw /mnt/whoosh_index
+    fi
 fi
 
 # Display the generated supervisord.conf:
