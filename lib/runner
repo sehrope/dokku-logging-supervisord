@@ -13,7 +13,10 @@ mkdir -p /var/log/app
 
 # Get buildstep user if it exists and chown log dir
 user_name=$(egrep "^u[1-9]+" /etc/passwd 2> /dev/null | awk -F':' '{ print $1 }')
-[[ -n "$user_name" ]] && chown -R $user_name /var/log/app
+if [ -n "$user_name" ];then
+    chown -R $user_name /var/log/app
+    [[ -d "/mnt/whoosh_index" ]] && chown -R $user_name /mnt/whoosh_index
+fi
 
 # Display the generated supervisord.conf:
 echo "Generated supervisord.conf:"
