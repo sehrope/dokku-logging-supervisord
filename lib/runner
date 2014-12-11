@@ -5,6 +5,15 @@ export HOME=/app
 hash -r
 cd $HOME
 
+if [[ -d /app/.profile.d ]]; then
+  for file in /app/.profile.d/*.sh; do
+    source $file
+  done
+fi
+# need to unset PYTHON vars to use apt installed supervisord
+unset PYTHONHOME
+unset PYTHONPATH
+
 # Generate supervisord.conf:
 bash /build/procfile-to-supervisord /app/Procfile /app/SCALE > supervisord.conf
 
