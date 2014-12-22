@@ -14,7 +14,7 @@ if [ $(docker wait $id) -ne 0 ]; then
   exit 0
 fi
 
-copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
+copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /usr/local/bin/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
   copy_to_container "$SCALE_FILE" /app/SCALE
