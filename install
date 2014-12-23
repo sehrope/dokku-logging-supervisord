@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+LOGDIR=/var/log/dokku
+
+if [ ! -d $LOGDIR ]; then
+    mkdir $LOGDIR
+fi
+
+chown dokku:dokku -R $LOGDIR
