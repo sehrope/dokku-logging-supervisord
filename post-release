@@ -44,4 +44,4 @@ id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
 
-sudo $PLUGIN_DIR/lib/dokku-cfg-logrotate create "$APP"
+sudo $PLUGIN_DIR/lib/dokku-cfg-logrotate create "$APP" "$DOKKU_ROOT/$APP/logrotate.md5"

@@ -1,0 +1,7 @@
+#!/bin/bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+APP="$1"
+PLUGIN_DIR=$(dirname $0)
+
+sudo $PLUGIN_DIR/lib/dokku-cfg-logrotate remove "$APP" "$DOKKU_ROOT/$APP/logrotate.md5"

@@ -3,10 +3,12 @@
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
 APP="$2"
+CHECKSUM_FILE="$3"
+LOGROT_FILE="/etc/logrotate.d/dokku-app.d/$APP"
 
-if [[ -z $APP ]]; then
+if [[ -z $APP || -z $CHECKSUM_FILE ]]; then
     cat <<EOF
-dokku-cfg-logrotate <create|remode> <app>
+dokku-cfg-logrotate <create|remode> <app> <checksumfilename>
 create     Create logrotate config for app if not exists.
 remove     Remove logrotate config if not changed by user.
 EOF
@@ -34,9 +36,21 @@ EOF
 
 case "$1" in
     create)
-        LOGROT_FILE="/etc/logrotate.d/dokku-app.d/$APP"
         create_log_rotate "$APP" "$LOGROT_FILE"
         chown root:root "$LOGROT_FILE"
         chmod 644 "$LOGROT_FILE"
+
+        md5sum "$LOGROT_FILE" > "$CHECKSUM_FILE"
+        ;;
+    remove)
+        if [[ -f "$CHECKSUM_FILE" && -f "$LOGROT_FILE" ]]; then
+            savedMD5=$(cat "$CHECKSUM_FILE")
+            currentMD5=$(md5sum "$LOGROT_FILE")
+            if [[ "$currentMD5" = "$savedMD5" ]]; then
+                rm "$LOGROT_FILE"
+                else
+                echo "       Keep user changed logrotate file $LOGROT_FILE"
+            fi
+        fi
         ;;
 esac
