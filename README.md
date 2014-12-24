@@ -15,7 +15,7 @@ dokku plugins-install
 ```
 
 All future deployments will use this plugin to start all processes and all log output will be in `/var/log/dokku/$APP/`.
-Logs are rotated. You may customize logrotate file after deploy, check /etc/logrotate.d/dokku-app.d/<APP> file.
+Logs are rotated. You may customize logrotate file after deploy, check `/etc/logrotate.d/dokku-app.d/$APP` file.
 
 ## What it does
 
@@ -70,7 +70,7 @@ Adding the `SCALE` file is done by copying it into the container. This adds anot
 ## Logrotate
 
 This plugin create in directory "/etc/logrotate.d/dokku-app.d" logrotate config for each application.
-If application destroyed, config will be removed only if user don't change it (in dokku root, md5 checksum of config file stored).
+If application destroyed, config will be removed only if user don't change it (in app root directory, md5 checksum of config file stored).
 
 ## TODO
 
