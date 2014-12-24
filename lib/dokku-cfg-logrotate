@@ -21,7 +21,7 @@ function create_log_rotate() {
   LOGROT_FILE="$2"
   if [ ! -f "$LOGROT_FILE" ]; then
     echo "       Creating $LOGROT_FILE"
-    cat >> "$LOGROT_FILE" <<EOF
+    cat > "$LOGROT_FILE" <<EOF
 "/var/log/dokku/$APP/*log" {
   weekly
   su root

@@ -16,7 +16,7 @@ chown dokku:dokku -R $LOGDIR
 
 # Allow dokku sudo command for creating logrotate configs.
 # Logrotate configs must have root ownerships and 644, what script "dokku-cfg-logrotate" do it.
-cat >> /etc/sudoers.d/dokku-plugin-logging-supervisord <<EOF
+cat > /etc/sudoers.d/dokku-plugin-logging-supervisord <<EOF
 # dokku-cfg-logrotate setup logrotate config files
 %dokku ALL=(ALL) NOPASSWD:$PLUGIN_DIR/lib/dokku-cfg-logrotate
 EOF
