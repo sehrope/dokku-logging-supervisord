@@ -22,18 +22,18 @@ else
   # Check for SCALE file in IMAGE
   SCALE_IN_IMAGE=$(docker run -i -t $IMAGE /exec ls SCALE > /dev/null 2>&1 ; echo $?)
   if [ "$SCALE_IN_IMAGE" -eq 0 ];then
-    echo "Found SCALE file in IMAGE"
+    echo "       Found SCALE file in IMAGE"
   else
-    echo "No SCALE file found; will use default of one process per entry in Procfile."
+    echo "       No SCALE file found; will use default of one process per entry in Procfile."
   fi
 fi
 
 echo "-----> Injecting Logging Supervisor ..."
 
 if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
-  echo "supervisor is already installed (skipping apt-get update/install)"
+  echo "       supervisor is already installed (skipping apt-get update/install)"
 else
-  echo "supervisor is not installed (will install via apt-get)"
+  echo "       supervisor is not installed (will install via apt-get)"
   id=$(docker run -i -a stdin $IMAGE /bin/bash -c "apt-get update && apt-get install -y supervisor && apt-get clean")
   test $(docker wait $id) -eq 0
   docker commit $id $IMAGE > /dev/null
@@ -43,3 +43,5 @@ fi
 id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start")
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
+
+sudo $PLUGIN_DIR/lib/dokku-cfg-logrotate create "$APP"

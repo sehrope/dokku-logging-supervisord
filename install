@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
-
+PLUGIN_DIR=$(dirname $0)
 LOGDIR=/var/log/dokku
 
 if [ ! -d $LOGDIR ]; then
@@ -9,3 +9,21 @@ if [ ! -d $LOGDIR ]; then
 fi
 
 chown dokku:dokku -R $LOGDIR
+
+# Logrotate.
+# Each post-release will create in directory
+# /etc/logrotate.d/dokku-app.d config file, if not exist it.
+
+# Allow dokku sudo command for creating logrotate configs.
+# Logrotate configs must have root ownerships and 644, what script "dokku-cfg-logrotate" do it.
+cat >> /etc/sudoers.d/dokku-plugin-logging-supervisord <<EOF
+%dokku ALL=(ALL) NOPASSWD:$PLUGIN_DIR/lib/dokku-cfg-logrotate
+EOF
+
+# Copy logrotate includder.
+LOGROT_DIR="/etc/logrotate.d/dokku-app.d"
+if [ ! -d $LOGROT_DIR ]; then
+    mkdir $LOGROT_DIR
+fi
+cp $PLUGIN_DIR/lib/dokku-app-logrotate.conf /etc/logrotate.d/dokku-app
+chown root:root $LOGROT_DIR

@@ -7,7 +7,7 @@ function copy_to_container() {
   SOURCE_FILE="$1"
   TARGET_FILE="$2"
   if [ ! -f "$SOURCE_FILE" ]; then
-    echo "Source file does not exist on host: $SOURCE_FILE"
+    echo "       Source file does not exist on host: $SOURCE_FILE"
     exit 1
   fi
   id=$(cat "$SOURCE_FILE" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > '$TARGET_FILE'")
