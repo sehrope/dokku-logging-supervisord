@@ -38,7 +38,7 @@ fi
 
 cat << EOF
 [program:${NAME}]
-command=/exec sh -c '${COMMAND}'
+command=/exec '${COMMAND}'
 process_name:${PROCESS_NAME}
 numprocs=${NUM_PROCS}
 autostart=true
@@ -51,25 +51,38 @@ EOF
 
 gen_supervisor_conf
 
-cat "$PROCFILE" | while read line; do
-  if [ ! -n "$line" ]; then
-    continue
-  fi
-
+DONE=false
+until $DONE; do
+  read line || DONE=true
+  [[ -z "$line" ]] && continue
+  RUN_PROC=false
   NAME=${line%%:*}
   COMMAND=${line#*: }
   NUM_PROCS=1
 
   if [ -f "$SCALEFILE" ]; then
-    SCALE=$(grep "$NAME=" "$SCALEFILE")
-    NUM_PROCS=${SCALE#*=}
-    if [ ! "$NUM_PROCS" -ge 1 ]; then
-      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-      exit 1
+    SCALE=$(egrep "^$NAME=" "$SCALEFILE")
+    if [ -n "$SCALE" ]; then
+      NUM_PROCS=${SCALE#*=}
     fi
   fi
 
-  # Add a blank line in between processes:
-  echo ""
-  gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
-done
+  if [[ -n "$DOKKU_SUPERVISOR_RUN" ]]; then
+    for PROC in $DOKKU_SUPERVISOR_RUN; do
+      if [[ "$PROC" = "$NAME" ]]; then
+        RUN_PROC=true
+        break
+      fi
+    done
+  else
+    RUN_PROC=true
+  fi
+
+  if [ "$NUM_PROCS" -ge 1 ]; then
+    # Add a blank line in between processes:
+    if [ "$RUN_PROC" = "true" ];then
+      echo ""
+      gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+    fi
+  fi
+done < $PROCFILE
