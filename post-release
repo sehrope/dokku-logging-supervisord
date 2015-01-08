@@ -33,7 +33,7 @@ fi
 
 # Unlink /exec from /start
 # Original builstep uses `ln -nsf /start /exec` that forks supervisor repeatedly
-id=$(docker run -i -a stdin $IMAGE /bin/bash -c "rm -f /exec && cp -f /start /exec")
+id=$(docker run -i -a stdin $IMAGE /bin/bash -c "if [[ -L /exec ]];then rm -f /exec && cp -f /start /exec; fi")
 test $(docker wait $id) -eq 0
 docker commit $id $IMAGE > /dev/null
 
