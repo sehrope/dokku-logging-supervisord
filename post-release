@@ -14,7 +14,7 @@ if [ $(docker wait $id) -ne 0 ]; then
   exit 0
 fi
 
-copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
+copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /usr/local/bin/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
   copy_to_container "$SCALE_FILE" /app/SCALE
@@ -30,6 +30,12 @@ else
   test $(docker wait $id) -eq 0
   docker commit $id $IMAGE > /dev/null
 fi
+
+# Unlink /exec from /start
+# Original builstep uses `ln -nsf /start /exec` that forks supervisor repeatedly
+id=$(docker run -i -a stdin $IMAGE /bin/bash -c "if [[ -L /exec ]];then rm -f /exec && cp -f /start /exec; fi")
+test $(docker wait $id) -eq 0
+docker commit $id $IMAGE > /dev/null
 
 # Replace /start with our custom runner:
 id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start")
