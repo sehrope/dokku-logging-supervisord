@@ -39,7 +39,7 @@ case "$1" in
 
     echo "Scaling app $APP:"
     cat -n "$REPO/SCALE"
-    copy_to_container "$SCALEFILE" /SCALE
+    copy_to_container "$SCALEFILE" /app/SCALE
 
     dokku deploy "$APP"
     ;;
