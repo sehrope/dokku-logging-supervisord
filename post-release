@@ -14,7 +14,7 @@ if [ $(docker wait $id) -ne 0 ]; then
   exit 0
 fi
 
-copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /build/procfile-to-supervisord
+copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /usr/local/bin/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
   echo "Found SCALE file: $SCALE_FILE"
   copy_to_container "$SCALE_FILE" /app/SCALE
@@ -26,12 +26,12 @@ if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
   echo "supervisor is already installed (skipping apt-get update/install)"
 else
   echo "supervisor is not installed (will install via apt-get)"
-  id=$(docker run -i -a stdin $IMAGE /bin/bash -c "apt-get update && apt-get install -y supervisor && apt-get clean")
-  test $(docker wait $id) -eq 0
-  docker commit $id $IMAGE > /dev/null
+  run_in_container "apt-get update && apt-get install -y supervisor && apt-get clean"
 fi
 
-# Replace /start with our custom runner:
-id=$(cat "$PLUGIN_DIR/lib/runner" | docker run -i -a stdin $IMAGE /bin/bash -c "cat > /start")
-test $(docker wait $id) -eq 0
-docker commit $id $IMAGE > /dev/null
+# Unlink /exec from /start
+# Original builstep uses `ln -nsf /start /exec` that forks supervisor repeatedly
+run_in_container "if [[ -L /exec ]];then rm -f /exec && cp -f /start /exec; fi"
+
+# Replace /start with our custom start program:
+copy_to_container "$PLUGIN_DIR/lib/start" /start

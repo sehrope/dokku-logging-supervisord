@@ -38,12 +38,12 @@ fi
 
 cat << EOF
 [program:${NAME}]
-command=/exec sh -c '${COMMAND}'
+command=/exec ${COMMAND}
 process_name:${PROCESS_NAME}
 numprocs=${NUM_PROCS}
 autostart=true
 autorestart=true
-stopsignal=QUIT
+stopsignal=TERM
 redirect_stderr=true
 stdout_logfile=/var/log/app/%(program_name)s.%(process_num)02d.log
 EOF
