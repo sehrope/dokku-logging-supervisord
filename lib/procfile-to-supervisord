@@ -51,7 +51,8 @@ EOF
 
 gen_supervisor_conf
 
-cat "$PROCFILE" | while read line; do
+while read line || [ -n "$line" ]
+do
   if [ ! -n "$line" ]; then
     continue
   fi
@@ -72,4 +73,4 @@ cat "$PROCFILE" | while read line; do
   # Add a blank line in between processes:
   echo ""
   gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
-done
+done < "$PROCFILE"
