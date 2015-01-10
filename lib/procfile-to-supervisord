@@ -63,10 +63,15 @@ do
 
   if [ -f "$SCALEFILE" ]; then
     SCALE=$(grep "$NAME=" "$SCALEFILE")
+    if [ -z "$SCALE" ]; then
+      echo "Not running $NAME as absent in SCALE file" >&2
+      continue
+    fi
+
     NUM_PROCS=${SCALE#*=}
-    if [ ! "$NUM_PROCS" -ge 1 ]; then
-      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-      exit 1
+    if [ "$NUM_PROCS" -eq 0 ]; then
+      echo "Not running $NAME as scale is zero" >&2
+      continue
     fi
   fi
 
