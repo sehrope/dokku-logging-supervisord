@@ -21,6 +21,14 @@ bash /usr/local/bin/procfile-to-supervisord /app/Procfile /app/SCALE > superviso
 # Create /var/log/app directory
 mkdir -p /var/log/app
 
+# Get buildstep user if it exists and chown log dir
+user_name=$(stat -c %U /app)
+user_group=$(stat -c %G /app)
+if [[ -n "$user_name" ]] && [[ -n "$user_group" ]];then
+    chown -R ${user_name}:${user_group} /var/log/app
+    chmod -R g+rw /var/log/app
+fi
+
 # Display the generated supervisord.conf:
 echo "Generated supervisord.conf:"
 cat -n supervisord.conf
