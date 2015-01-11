@@ -27,6 +27,10 @@ user_group=$(stat -c %G /app)
 if [[ -n "$user_name" ]] && [[ -n "$user_group" ]];then
     chown -R ${user_name}:${user_group} /var/log/app
     chmod -R g+rw /var/log/app
+    if [ -d "/mnt/whoosh_index" ];then
+        chown -R ${user_name}:${user_group} /mnt/whoosh_index
+        chmod -R g+rw /mnt/whoosh_index
+    fi
 fi
 
 # Display the generated supervisord.conf:
