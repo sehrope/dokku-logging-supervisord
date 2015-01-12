@@ -11,6 +11,14 @@ bash /usr/local/bin/procfile-to-supervisord /app/Procfile /app/SCALE > superviso
 # Create /var/log/app directory
 mkdir -p /var/log/app
 
+# Change ownership of /var/log/app to non-root container user
+APP_USER=$(stat -c %U /app)
+APP_GROUP=$(stat -c %G /app)
+if [[ -n "$APP_USER" ]] && [[ -n "$APP_GROUP" ]]; then
+  chown -R "${APP_USER}:${APP_GROUP}" /var/log/app
+  chmod -R g+rw /var/log/app
+fi
+
 # Display the generated supervisord.conf:
 echo "Generated supervisord.conf:"
 cat -n supervisord.conf
