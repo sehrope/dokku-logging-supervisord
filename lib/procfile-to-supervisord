@@ -53,24 +53,39 @@ gen_supervisor_conf
 
 while read line || [ -n "$line" ]
 do
-  if [ ! -n "$line" ]; then
-    continue
-  fi
-
+  [[ -z "$line" ]] && continue
+  RUN_PROC=false
   NAME=${line%%:*}
   COMMAND=${line#*: }
   NUM_PROCS=1
 
-  if [ -f "$SCALEFILE" ]; then
-    SCALE=$(grep "$NAME=" "$SCALEFILE")
-    NUM_PROCS=${SCALE#*=}
-    if [ ! "$NUM_PROCS" -ge 1 ]; then
-      echo "Invalid scale line for process $NAME: $SCALE" 1>&2
-      exit 1
+  if [[ -f "$SCALEFILE" ]]; then
+    SCALE=$(egrep "^$NAME=" "$SCALEFILE")
+    if [[ -n "$SCALE" ]]; then
+      NUM_PROCS=${SCALE#*=}
+      if [[ "$NUM_PROCS" -eq 0 ]]; then
+        echo "=====> Not running $NAME as scale is zero" >&2
+        continue
+      fi
     fi
   fi
 
-  # Add a blank line in between processes:
-  echo ""
-  gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+  if [[ -n "$DOKKU_SUPERVISOR_RUN" ]]; then
+    for PROC in $DOKKU_SUPERVISOR_RUN; do
+      if [[ "$PROC" = "$NAME" ]]; then
+        RUN_PROC=true
+        break
+      fi
+    done
+  else
+    RUN_PROC=true
+  fi
+
+  if [[ "$NUM_PROCS" -ge 1 ]]; then
+    if [[ "$RUN_PROC" = "true" ]];then
+      # Add a blank line in between processes:
+      echo ""
+      gen_supervisor_proc_conf "$NAME" "$COMMAND" "$NUM_PROCS"
+    fi
+  fi
 done < "$PROCFILE"
