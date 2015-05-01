@@ -42,7 +42,7 @@ fi
 
 cat << EOF
 [program:${NAME}]
-command=/exec ${COMMAND}
+command=/exec sh -c "${COMMAND}"
 process_name:${PROCESS_NAME}
 numprocs=${NUM_PROCS}
 autostart=true
