@@ -24,13 +24,14 @@ mkdir -p /var/log/app
 # Get buildstep user if it exists and chown log dir
 user_name=$(stat -c %U /app)
 user_group=$(stat -c %G /app)
+mount_list="/var/log/app /mnt/whoosh_index /mnt/simsrv"
 if [[ -n "$user_name" ]] && [[ -n "$user_group" ]];then
-    chown -R ${user_name}:${user_group} /var/log/app
-    chmod -R g+rw /var/log/app
-    if [ -d "/mnt/whoosh_index" ];then
-        chown -R ${user_name}:${user_group} /mnt/whoosh_index
-        chmod -R g+rw /mnt/whoosh_index
-    fi
+    for mount in $mount_list; do
+        if [ -d "$mount" ];then
+            chown -R ${user_name}:${user_group} "$mount"
+            chmod -R g+rw "$mount"
+        fi
+    done
 fi
 
 # Display the generated supervisord.conf:
