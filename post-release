@@ -16,16 +16,16 @@ fi
 
 copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /usr/local/bin/procfile-to-supervisord
 if [ -f "$SCALE_FILE" ]; then
-  echo "Found SCALE file: $SCALE_FILE"
+  echo "-----> Injecting SCALE file for Supervisor: $SCALE_FILE"
   copy_to_container "$SCALE_FILE" /app/SCALE
 fi
 
 echo "-----> Injecting Logging Supervisor ..."
 
 if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
-  echo "supervisor is already installed (skipping apt-get update/install)"
+  echo "       supervisor is already installed (skipping apt-get update/install)"
 else
-  echo "supervisor is not installed (will install via apt-get)"
+  echo "       supervisor is not installed (will install via apt-get)"
   run_in_container "apt-get update && apt-get install -y supervisor && apt-get clean"
 fi
 
