@@ -2,16 +2,29 @@
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
 PLUGIN_DIR=$(dirname $0)
-. "$PLUGIN_DIR/lib/helpers"
+source "$PLUGIN_DIR/functions"
+source "$(dirname "$PLUGIN_DIR")/common/functions"
 
 case "$1" in
+  logs:all)
+    shift 1
+    tail_logs all $@
+    ;;
+
+  logs:app)
+    shift 1
+    tail_logs app $@
+    ;;
+
+  logs:supervisord)
+    tail_logs all $2 $3 supervisor
+    ;;
+
   scale)
-    if [[ -z $2 ]]; then
-      echo "Please specify an app to scale"
-      exit 1
-    fi
-    APP="$2"
-    IMAGE="dokku/$APP"
+    [[ -z $2 ]] && echo "Please specify an app to scale" && exit 1
+    verify_app_name "$2"
+    APP="$2";
+
     REPO="$DOKKU_ROOT/$APP"
     if [ ! -d "$REPO" ]; then
       echo "No matching app: $APP"
@@ -39,13 +52,16 @@ case "$1" in
 
     echo "Scaling app $APP:"
     cat -n "$REPO/SCALE"
-    copy_to_container "$SCALEFILE" /app/SCALE
+    copy_to_container "$APP" "$SCALEFILE" /app/SCALE
 
     dokku deploy "$APP"
     ;;
   help)
     cat && cat<<EOF
-    scale <app> TYPE1=NUM1 [TYPE2=NUM2 ...]         Scale an app
+    logs:all <app> [-t]                                        Show all logs for an application (-t follows)
+    logs:app <app> [-t]                                        Show only app logs for an application (-t follows)
+    logs:supervisord <app> [-t]                                Show only app logs for an application (-t follows)
+    scale <app> <proc>=<count> [<proc>=<count>]                Scale an app via supervisord (use instead of ps:scale)
 EOF
   ;;
 

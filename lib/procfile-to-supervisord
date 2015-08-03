@@ -26,7 +26,7 @@ function gen_supervisor_conf () {
   cat << EOF
 [supervisord]
 logfile=/var/log/app/supervisor.log
-loglevel=debug
+loglevel=info
 nodaemon=true
 EOF
 }

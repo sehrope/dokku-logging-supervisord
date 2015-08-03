@@ -6,7 +6,7 @@ IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
 PLUGIN_DIR=$(dirname $0)
-. "$PLUGIN_DIR/lib/helpers"
+source "$PLUGIN_DIR/functions"
 
 # Check for Procfile
 id=$(docker run -d $IMAGE test -f app/Procfile)
@@ -14,25 +14,28 @@ if [ $(docker wait $id) -ne 0 ]; then
   exit 0
 fi
 
-copy_to_container "$PLUGIN_DIR/lib/procfile-to-supervisord" /usr/local/bin/procfile-to-supervisord
+copy_to_container "$APP" "$PLUGIN_DIR/lib/procfile-to-supervisord" \
+                  /usr/local/bin/procfile-to-supervisord
 
 echo "-----> Injecting Logging Supervisor ..."
 
 if [ -f "$SCALE_FILE" ]; then
   echo "       Found SCALE file: $SCALE_FILE"
-  copy_to_container "$SCALE_FILE" /app/SCALE
+  copy_to_container "$APP" "$SCALE_FILE" /app/SCALE
 fi
 
 if docker run -a stdout -i $IMAGE /usr/bin/dpkg -s supervisor > /dev/null; then
   echo "       supervisor is already installed (skipping apt-get update/install)"
 else
   echo "       supervisor is not installed (will install via apt-get)"
-  run_in_container "apt-get update && apt-get install -y supervisor && apt-get clean"
+  run_in_container "$APP" \
+                   "apt-get update && apt-get install -y supervisor && apt-get clean"
 fi
 
 # Unlink /exec from /start
 # Original builstep uses `ln -nsf /start /exec` that forks supervisor repeatedly
-run_in_container "if [[ -L /exec ]];then rm -f /exec && cp -f /start /exec; fi"
+run_in_container "$APP" \
+                 "if [[ -L /exec ]];then rm -f /exec && cp -f /start /exec; fi"
 
 # Replace /start with our custom start program:
-copy_to_container "$PLUGIN_DIR/lib/start" /start
+copy_to_container "$APP" "$PLUGIN_DIR/lib/start" /start
