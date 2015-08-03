@@ -27,6 +27,14 @@ dokku-logging-supervisord plugin will run all process types (web, worker, etc.) 
 
 Additionally, it creates and binds a shared directory for each app from `/var/log/dokku/$APP` on the host machine to `/var/log/app` in the app's container. The supervisord config is setup to have each process in your Procfile send it's stdout and stderr to a separate file in that directory named `$PROCESS_NAME.$PROCESS_NUM.log`. Output for the  `supervisord` process itself (startup/shutdown notices, etc) will be logged to a file named `supervisor.log` in the same log directory.
 
+As the default `dokku logs` command will only show output from supervisord, additional log commands are provided:
+
+    logs:all <app> [-t] [process_name]    Show all logs, including supervisord (-t follows)
+    logs:app <app> [-t] [process_name]    Show all logs, exclusing supervisord (-t follows)
+    logs:supervisord <app> [-t]           Show only supervisord log (-t follows)
+
+The `logs:supervisord` command differs from the built-in `logs` command in that it specifically fetches it's output from `/var/log/dokku/$APP/supervisor.log` rather than the STDOUT of the main process in the container.
+
 ## Example
 
 If you have an app `myapp` with a Procfile that looks like this:

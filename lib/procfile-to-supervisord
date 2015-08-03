@@ -23,7 +23,7 @@ function log_debug() {
 }
 
 function gen_supervisor_conf () {
-cat << EOF
+  cat << EOF
 [supervisord]
 logfile=/var/log/app/supervisor.log
 loglevel=info
@@ -32,15 +32,15 @@ EOF
 }
 
 function gen_supervisor_proc_conf () {
-NAME="$1"
-COMMAND="$2"
-NUM_PROCS="$3"
-PROCESS_NAME='%(program_name)s'
-if [ "$NUM_PROCS" -gt 1 ]; then
-  PROCESS_NAME='%(program_name)s.%(process_num)02d'
-fi
+  NAME="$1"
+  COMMAND="$2"
+  NUM_PROCS="$3"
+  PROCESS_NAME='%(program_name)s'
+  if [ "$NUM_PROCS" -gt 1 ]; then
+    PROCESS_NAME='%(program_name)s.%(process_num)02d'
+  fi
 
-cat << EOF
+  cat << EOF
 [program:${NAME}]
 command=/exec ${COMMAND}
 process_name:${PROCESS_NAME}

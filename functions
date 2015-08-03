@@ -1,0 +1,75 @@
+tail_logs() {
+  [[ -z $2 ]] && echo "Please specify an app to run the command on" && exit 1
+  verify_app_name "$2"
+
+  local MODE="$1"
+  local APP="$2"
+  local FOLLOW=""
+  local LOGNAME="*.log"
+  local LOGFILES=""
+
+  if [ "$3" == "-t" ] && [ -n "$4" ]; then
+    FOLLOW="-f"
+    LOGNAME="${4}*.log"
+  elif [ "$3" == "-t" ]; then
+    FOLLOW="-f"
+  elif [ -n "$3" ]; then
+    LOGNAME="${3}*.log"
+  fi
+
+  local FINDQUERY=(-name "$LOGNAME")
+  if [ "$MODE" == "app" ]; then
+    FINDQUERY+=(! -name "supervisor.log")
+  fi
+
+  LOGFILES=$(find "/var/log/dokku/$APP" -type f \( "${FINDQUERY[@]}" \))
+
+  if [ -z "$LOGFILES" ]; then
+    echo "No log file matches \"$LOGNAME\""
+    exit 1
+  fi
+
+  tail -n 25 $FOLLOW $LOGFILES
+}
+
+function log_debug () {
+  if [ $DOKKU_TRACE ]; then
+    echo "$@"
+  fi
+}
+
+# Copies a file from the host into the container
+function copy_to_container() {
+  local APP="$1"
+  local SOURCE_FILE="$2"
+  local TARGET_FILE="$3"
+  local IMAGE="dokku/$APP"
+
+  log_debug "Copying $SOURCE_FILE to container: $TARGET_FILE"
+
+  if [ ! -f "$SOURCE_FILE" ]; then
+    echo "Source file does not exist on host: $SOURCE_FILE"
+    exit 1
+  fi
+
+  local ACCESS_PERM=$(stat -c %a "$SOURCE_FILE")
+  local id=$(cat "$SOURCE_FILE" | \
+    docker run -i -a stdin $IMAGE \
+    /bin/bash -c "cat > '$TARGET_FILE' && chmod $ACCESS_PERM '$TARGET_FILE'")
+
+  test $(docker wait $id) -eq 0
+  docker commit $id $IMAGE > /dev/null
+}
+
+# Execute a command in the container and commit the resulting image
+function run_in_container() {
+  local APP="$1"
+  local COMMAND="$2"
+  local IMAGE="dokku/$APP"
+
+  log_debug "Executing command in container: $COMMAND"
+  local id=$(docker run -i -a stdin $IMAGE /bin/bash -c "$COMMAND")
+
+  test $(docker wait $id) -eq 0
+  docker commit $id $IMAGE > /dev/null
+}
