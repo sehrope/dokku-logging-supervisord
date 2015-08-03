@@ -64,9 +64,9 @@ case "$1" in
     ;;
   help)
     cat && cat<<EOF
-    logs:all <app> [-t]                                        Show all logs for an application (-t follows)
-    logs:app <app> [-t]                                        Show only app logs for an application (-t follows)
-    logs:supervisord <app> [-t]                                Show only app logs for an application (-t follows)
+    logs:all <app> [-t] [process_name]                         Show all logs, including supervisord (-t follows)
+    logs:app <app> [-t] [process_name]                         Show all logs, exclusing supervisord (-t follows)
+    logs:supervisord <app> [-t]                                Show only supervisord log (-t follows)
     scale <app> <proc>=<count> [<proc>=<count>]                Scale an app via supervisord (use instead of ps:scale)
 EOF
   ;;
