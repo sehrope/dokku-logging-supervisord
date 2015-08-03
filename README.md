@@ -33,6 +33,8 @@ As the default `dokku logs` command will only show output from supervisord, addi
     logs:app <app> [-t] [process_name]    Show all logs, exclusing supervisord (-t follows)
     logs:supervisord <app> [-t]           Show only supervisord log (-t follows)
 
+The `logs:supervisord` command differs from the built-in `logs` command in that it specifically fetches it's output from `/var/log/dokku/$APP/supervisor.log` rather than the STDOUT of the main process in the container.
+
 ## Example
 
 If you have an app `myapp` with a Procfile that looks like this:
