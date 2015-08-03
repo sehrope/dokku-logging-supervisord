@@ -6,6 +6,7 @@ tail_logs() {
   local APP="$2"
   local FOLLOW=""
   local LOGNAME="*.log"
+  local LOGFILES=""
 
   if [ "$3" == "-t" ] && [ -n "$4" ]; then
     FOLLOW="-f"
@@ -16,14 +17,19 @@ tail_logs() {
     LOGNAME="${3}*.log"
   fi
 
+  local FINDQUERY=(-name "$LOGNAME")
   if [ "$MODE" == "app" ]; then
-    tail -n 25 $FOLLOW $(find "/var/log/dokku/$APP" \
-                              \( -type f -name "${LOGNAME}" \
-                              ! -name supervisor.log \) )
-  else
-    tail -n 25 $FOLLOW $(find "/var/log/dokku/$APP" \
-                              -type f -name "${LOGNAME}" )
+    FINDQUERY+=(! -name "supervisor.log")
   fi
+
+  LOGFILES=$(find "/var/log/dokku/$APP" -type f \( "${FINDQUERY[@]}" \))
+
+  if [ -z "$LOGFILES" ]; then
+    echo "No log file matches \"$LOGNAME\""
+    exit 1
+  fi
+
+  tail -n 25 $FOLLOW $LOGFILES
 }
 
 function log_debug () {
