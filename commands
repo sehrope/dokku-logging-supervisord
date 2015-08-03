@@ -20,6 +20,12 @@ case "$1" in
     tail_logs all $2 $3 supervisor
     ;;
 
+  ps:scale)
+    echo "logging-supervisord plugin handles scaling, use the \"scale\"" \
+         "command instead of \"ps:scale\"."
+    exit 1
+    ;;
+
   scale)
     [[ -z $2 ]] && echo "Please specify an app to scale" && exit 1
     verify_app_name "$2"
