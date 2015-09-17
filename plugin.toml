@@ -1,0 +1,6 @@
+[plugin]
+name = "dokku-logging-supervisord"
+description = "A plugin for dokku that injects supervisord"
+version = "0.1.0"
+website_url = "https://github.com/expa/dokku-logging-supervisord"
+[plugin.config]

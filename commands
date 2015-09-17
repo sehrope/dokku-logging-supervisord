@@ -45,8 +45,11 @@ case "$1" in
     ;;
   help)
     cat && cat<<EOF
-    scale <app> TYPE1=NUM1 [TYPE2=NUM2 ...]         Scale an app
+    scale <app> TYPE1=NUM1 [TYPE2=NUM2 ...], Scale an app
 EOF
   ;;
+  *)
+    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    ;;
 
 esac
