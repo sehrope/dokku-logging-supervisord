@@ -1,9 +1,12 @@
 #!/bin/bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_CORE_AVAILABLE_PATH/common/functions" || true
 
 APP="$1"
 IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
+
+[[ -n "$DOKKU_API_VERSION" ]] && IMAGE=$(get_app_image_name $APP)
 
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
