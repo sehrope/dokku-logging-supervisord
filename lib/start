@@ -39,4 +39,4 @@ echo "Generated supervisord.conf:"
 cat -n supervisord.conf
 
 # Start up the app:
-supervisord -c supervisord.conf
+exec supervisord -c supervisord.conf
