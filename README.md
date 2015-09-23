@@ -1,11 +1,11 @@
 # dokku-logging-supervisord
 
 dokku-logging-supervisord is a plugin for [dokku][dokku] that injects
-[supervisord][super] to run applications and redirects stdout & stderr to app/process specific log files (rather than the Docker default per-container JSON files). 
+[supervisord][super] to run applications and redirects stdout & stderr to app/process specific log files (rather than the Docker default per-container JSON files).
 
 ## Requirements
 
-This plugin uses the `docker-args` hook to inject the data volume argument. As such, at the moment it only works with the development version of Dokku. 
+This plugin uses the `docker-args` hook to inject the data volume argument. As such, at the moment it only works with the development version of Dokku.
 
 ## Installation
 
@@ -15,7 +15,11 @@ sudo mkdir -p /var/log/dokku
 sudo chown dokku:dokku /var/log/dokku
 
 # Install the plugin:
+# dokku 0.3.x
 git clone https://github.com/sehrope/dokku-logging-supervisord.git /var/lib/dokku/plugins/logging-supervisord
+
+# dokku 0.4+
+dokku plugin:install https://github.com/sehrope/dokku-logging-supervisord.git
 ```
 
 All future deployments will use this plugin to start all processes and all log output will be in `/var/log/dokku/$APP/`.
