@@ -18,6 +18,10 @@ if [ ! -f "$PROCFILE" ]; then
   exit 1
 fi
 
+function log_debug() {
+  echo "$@" 1>&2
+}
+
 function gen_supervisor_conf () {
 cat << EOF
 [supervisord]
@@ -61,12 +65,14 @@ do
 
   if [[ -f "$SCALEFILE" ]]; then
     SCALE=$(egrep "^$NAME=" "$SCALEFILE")
-    if [[ -n "$SCALE" ]]; then
-      NUM_PROCS=${SCALE#*=}
-      if [[ "$NUM_PROCS" -eq 0 ]]; then
-        echo "=====> Not running $NAME as scale is zero" >&2
-        continue
-      fi
+    NUM_PROCS=${SCALE#*=}
+    if [[ "$SCALE" == "" ]] || [[ "$NUM_PROCS" -eq 0 ]]; then
+      log_debug "NOTE: Process $NAME will not execute (num proceses is zero)"
+      continue
+    fi
+    if [[ ! "$NUM_PROCS" -ge 1 ]]; then
+      log_debug "Invalid scale line for process $NAME: $SCALE"
+      continue
     fi
   fi
 

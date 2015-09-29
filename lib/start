@@ -21,17 +21,17 @@ bash /usr/local/bin/procfile-to-supervisord /app/Procfile /app/SCALE > superviso
 # Create /var/log/app directory
 mkdir -p /var/log/app
 
-# Get buildstep user if it exists and chown log dir
-user_name=$(stat -c %U /app)
-user_group=$(stat -c %G /app)
+# Change ownership of /var/log/app to non-root container user
+APP_USER=$(stat -c %U /app)
+APP_GROUP=$(stat -c %G /app)
 mount_list="/var/log/app /mnt/whoosh_index /mnt/simsrv"
-if [[ -n "$user_name" ]] && [[ -n "$user_group" ]];then
-    for mount in $mount_list; do
-        if [ -d "$mount" ];then
-            chown -R ${user_name}:${user_group} "$mount"
-            chmod -R g+rw "$mount"
-        fi
-    done
+if [[ -n "$APP_USER" ]] && [[ -n "$APP_GROUP" ]]; then
+  for mount in $mount_list; do
+    if [[ -d "$mount" ]];then
+      chown -R "${APP_USER}:${APP_GROUP}" "$mount"
+      chmod -R g+rw "$mount"
+    fi
+  done
 fi
 
 # Display the generated supervisord.conf:
