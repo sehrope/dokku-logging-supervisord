@@ -5,6 +5,11 @@ APP="$1"
 IMAGE="dokku/$1"
 SCALE_FILE="$DOKKU_ROOT/$APP/SCALE"
 
+if [[ -n $DOKKU_API_VERSION ]]; then
+  source "$PLUGIN_ENABLED_PATH/common/functions"
+  IMAGE=$(get_app_image_name $APP)
+fi
+
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
 

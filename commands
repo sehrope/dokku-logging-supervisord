@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+APP="$2"
+IMAGE="dokku/$APP"
+REPO="$DOKKU_ROOT/$APP"
 
 PLUGIN_DIR=$(dirname $0)
 . "$PLUGIN_DIR/lib/helpers"
 
 case "$1" in
   scale)
-    if [[ -z $2 ]]; then
-      echo "Please specify an app to scale"
-      exit 1
+    [[ -z $2 ]] && echo "Please specify an app to scale" && exit 1
+
+    if [[ -n $DOKKU_API_VERSION ]]; then
+      source "$PLUGIN_ENABLED_PATH/common/functions"
+      IMAGE=$(get_app_image_name $APP)
     fi
-    APP="$2"
-    IMAGE="dokku/$APP"
-    REPO="$DOKKU_ROOT/$APP"
+
     if [ ! -d "$REPO" ]; then
       echo "No matching app: $APP"
       exit 1
@@ -43,10 +46,21 @@ case "$1" in
 
     dokku deploy "$APP"
     ;;
+
   help)
-    cat && cat<<EOF
-    scale <app> TYPE1=NUM1 [TYPE2=NUM2 ...]         Scale an app
+    HELP=$(cat<<EOF
+    scale <app> TYPE1=NUM1 [TYPE2=NUM2 ...], Scale an app
 EOF
+)
+    if [[ -n $DOKKU_API_VERSION ]]; then
+      echo "$HELP"
+    else
+      cat && echo "$HELP"
+    fi
   ;;
+
+  *)
+    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    ;;
 
 esac

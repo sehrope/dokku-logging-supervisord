@@ -5,6 +5,16 @@ export HOME=/app
 hash -r
 cd $HOME
 
+# source in app env for things like DOKKU_SUPERVISOR_RUN
+if [[ -d /app/.profile.d ]]; then
+  for file in /app/.profile.d/*.sh; do
+    source $file
+  done
+fi
+# need to unset PYTHON vars to use apt installed supervisord
+unset PYTHONHOME
+unset PYTHONPATH
+
 # Generate supervisord.conf:
 bash /usr/local/bin/procfile-to-supervisord /app/Procfile /app/SCALE > supervisord.conf
 
@@ -24,4 +34,4 @@ echo "Generated supervisord.conf:"
 cat -n supervisord.conf
 
 # Start up the app:
-supervisord -c supervisord.conf
+exec supervisord -c supervisord.conf
