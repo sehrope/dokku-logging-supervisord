@@ -1,5 +1,7 @@
 # dokku-logging-supervisord
 
+> Deprecated as of Dokku 0.3.14 (process management) and 0.7.0 (restart policies)
+
 dokku-logging-supervisord is a plugin for [dokku][dokku] that injects
 [supervisord][super] to run applications and redirects stdout & stderr to app/process specific log files (rather than the Docker default per-container JSON files).
 
